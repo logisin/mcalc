@@ -99,10 +99,17 @@ pAssigment :: Parser (Expr Double)
 pAssigment = do
               pv<- pVariable2
               eq<- (symbol ":=")
-              va<- M.choice [parens pExpr,pVariable,pDouble]
+              va<- M.choice [pExpr,pVariable,pNumber]
               return (Assign pv va)
+
 pDouble :: Parser (Expr Double)
 pDouble = Lit <$> lexeme L.float
+
+pInt :: Parser (Expr Double)
+pInt = (Lit . fromIntegral) <$> lexeme L.decimal
+
+pNumber :: Parser (Expr Double)
+pNumber = M.choice [pInt,pDouble]
 
 parens :: Parser a -> Parser a
 parens = M.between (symbol "(") (symbol ")")
@@ -112,7 +119,7 @@ pTerm = M.choice
        [ parens pExpr
        , M.try pAssigment
        , pVariable
-       , pDouble
+       , pNumber
        ]
 pExpr :: Parser (Expr Double)
 pExpr = makeExprParser pTerm operatorTable
